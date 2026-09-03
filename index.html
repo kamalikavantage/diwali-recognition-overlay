@@ -291,7 +291,7 @@
      OVERLAY 9 — Diwali sky banner: a horizontal festive scene
      strip below the logo/header — dusk sky, string lights, a row
      of flickering diyas along the bottom edge, people walking the
-     ground lighting them with a taper, and rockets that launch up
+     ground holding a crackling sparkler, and rockets that launch up
      into the sky and burst.
      ============================================================ */
   .diwali-sky-strip{display:none}
@@ -355,11 +355,24 @@
   @keyframes legSwingA{0%,100%{transform:rotate(-16deg)}50%{transform:rotate(14deg)}}
   @keyframes legSwingB{0%,100%{transform:rotate(14deg)}50%{transform:rotate(-16deg)}}
 
-  .flame-flicker{
+  /* handheld sparkler: a bright pulsing core with crackling rays
+     shooting out and retracting at random-feeling, staggered beats */
+  .spark-core{
     transform-box:fill-box;transform-origin:center;
-    animation:flameFlicker .45s ease-in-out infinite alternate;
+    filter:drop-shadow(0 0 3px rgba(255,178,56,.9));
+    animation:sparkPulse .3s ease-in-out infinite alternate;
   }
-  @keyframes flameFlicker{0%{transform:scale(1)}100%{transform:scale(1.3)}}
+  @keyframes sparkPulse{0%{transform:scale(1);opacity:1}100%{transform:scale(1.5);opacity:.7}}
+  .spark-ray{
+    transform-box:view-box;transform-origin:34px 27px;
+    animation:rayFlicker .22s steps(1) infinite;
+  }
+  .spark-ray:nth-child(1){animation-delay:0s}
+  .spark-ray:nth-child(2){animation-delay:.06s}
+  .spark-ray:nth-child(3){animation-delay:.11s}
+  .spark-ray:nth-child(4){animation-delay:.16s}
+  .spark-ray:nth-child(5){animation-delay:.09s}
+  @keyframes rayFlicker{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.15;transform:scale(.55)}}
 
   #skyFireworksCanvas{position:absolute;inset:0;pointer-events:none}
 
@@ -553,8 +566,15 @@
         <path class="walk-leg-b" d="M20 32 26 48" stroke="var(--diwali-gold-bright)" stroke-width="3" fill="none" stroke-linecap="round"/>
         <path d="M20 20 13 25" stroke="var(--diwali-gold-bright)" stroke-width="3" fill="none" stroke-linecap="round"/>
         <path d="M20 20 30 32" stroke="var(--diwali-gold-bright)" stroke-width="3" fill="none" stroke-linecap="round"/>
-        <ellipse cx="32" cy="34" rx="4" ry="2" fill="var(--diwali-maroon)"/>
-        <path class="flame-flicker" d="M32 32c-1.3-1.3-1.3-2.8 0-4 1.3 1.2 1.3 2.7 0 4z" fill="var(--diwali-flame)"/>
+        <line x1="30" y1="32" x2="34" y2="27" stroke="#B08968" stroke-width="1.5" stroke-linecap="round"/>
+        <circle class="spark-core" cx="34" cy="27" r="1.8" fill="var(--diwali-flame)"/>
+        <g stroke="var(--diwali-gold-bright)" stroke-width="1" stroke-linecap="round">
+          <line class="spark-ray" x1="34" y1="27" x2="38" y2="24"/>
+          <line class="spark-ray" x1="34" y1="27" x2="37" y2="30"/>
+          <line class="spark-ray" x1="34" y1="27" x2="31" y2="22"/>
+          <line class="spark-ray" x1="34" y1="27" x2="38" y2="29"/>
+          <line class="spark-ray" x1="34" y1="27" x2="33" y2="21"/>
+        </g>
       </g>
     </svg>
   </div>
@@ -567,8 +587,15 @@
         <path class="walk-leg-b" d="M20 32 26 48" stroke="var(--diwali-gold-bright)" stroke-width="3" fill="none" stroke-linecap="round"/>
         <path d="M20 20 13 25" stroke="var(--diwali-gold-bright)" stroke-width="3" fill="none" stroke-linecap="round"/>
         <path d="M20 20 30 32" stroke="var(--diwali-gold-bright)" stroke-width="3" fill="none" stroke-linecap="round"/>
-        <ellipse cx="32" cy="34" rx="4" ry="2" fill="var(--diwali-maroon)"/>
-        <path class="flame-flicker" d="M32 32c-1.3-1.3-1.3-2.8 0-4 1.3 1.2 1.3 2.7 0 4z" fill="var(--diwali-flame)"/>
+        <line x1="30" y1="32" x2="34" y2="27" stroke="#B08968" stroke-width="1.5" stroke-linecap="round"/>
+        <circle class="spark-core" cx="34" cy="27" r="1.8" fill="var(--diwali-flame)"/>
+        <g stroke="var(--diwali-gold-bright)" stroke-width="1" stroke-linecap="round">
+          <line class="spark-ray" x1="34" y1="27" x2="38" y2="24"/>
+          <line class="spark-ray" x1="34" y1="27" x2="37" y2="30"/>
+          <line class="spark-ray" x1="34" y1="27" x2="31" y2="22"/>
+          <line class="spark-ray" x1="34" y1="27" x2="38" y2="29"/>
+          <line class="spark-ray" x1="34" y1="27" x2="33" y2="21"/>
+        </g>
       </g>
     </svg>
   </div>
@@ -736,7 +763,7 @@
     <label class="cp-item"><span class="cp-num">4</span><input type="checkbox" id="t4"><span class="cp-copy"><span class="cp-name">Gold/maroon theme skin</span><span class="cp-desc">Recolors the header &amp; primary buttons only — page background stays untouched.</span></span></label>
     <label class="cp-item"><span class="cp-num">5</span><input type="checkbox" id="t5"><span class="cp-copy"><span class="cp-name">"Happy Diwali!" banner</span><span class="cp-desc">Banner strip above the feed with a message and a live countdown to Diwali.</span></span></label>
     <label class="cp-item"><span class="cp-num">6</span><input type="checkbox" id="t6"><span class="cp-copy"><span class="cp-name">Diya avatar frames</span><span class="cp-desc">Small diya graphics framing every profile avatar across the page.</span></span></label>
-    <label class="cp-item"><span class="cp-num">9</span><input type="checkbox" id="t9"><span class="cp-copy"><span class="cp-name">Diwali sky banner</span><span class="cp-desc">Horizontal scene strip below the logo, around the Feed/Milestone row — dusk sky, string lights, diyas lined up along the bottom edge, people walking along the ground lighting them with a taper, and rockets that launch up and burst.</span></span></label>
+    <label class="cp-item"><span class="cp-num">9</span><input type="checkbox" id="t9"><span class="cp-copy"><span class="cp-name">Diwali sky banner</span><span class="cp-desc">Horizontal scene strip below the logo, around the Feed/Milestone row — dusk sky, string lights, diyas lined up along the bottom edge, people walking along the ground holding a crackling sparkler, and rockets that launch up and burst.</span></span></label>
   </div>
 </div>
 
