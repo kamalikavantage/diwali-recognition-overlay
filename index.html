@@ -290,9 +290,9 @@
   /* ============================================================
      OVERLAY 9 — Diwali sky banner: a horizontal festive scene
      strip below the logo/header (the "flying sleigh" equivalent) —
-     dusk sky, string lights, floating diya lanterns, a flying
-     carpet of celebrating pictogram figures, and periodic
-     firework bursts.
+     dusk sky, string lights, a row of flickering diyas along the
+     bottom edge, a flying carpet of celebrating pictogram figures,
+     and rockets that launch up into the sky and burst.
      ============================================================ */
   .diwali-sky-strip{display:none}
   body.show-sky-strip .diwali-sky-strip{display:block}
@@ -319,19 +319,19 @@
   .rangoli-mini-left{left:10px}
   .rangoli-mini-right{right:10px}
 
-  .lantern-layer{position:absolute;inset:0;pointer-events:none}
-  .lantern{
-    position:absolute;width:26px;height:26px;color:#F3D9A8;
-    animation-name:lanternDrift;animation-timing-function:linear;animation-iteration-count:infinite;
+  .diya-row{
+    position:absolute;left:10px;right:10px;bottom:-3px;z-index:1;
+    display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none;
   }
-  .lantern svg{width:100%;height:100%;filter:drop-shadow(0 0 6px rgba(255,178,56,.85))}
-  .lantern .flame{color:var(--diwali-flame)}
-  @keyframes lanternDrift{
-    0%{left:-8%;top:26%}
-    25%{top:16%}
-    50%{top:30%}
-    75%{top:18%}
-    100%{left:106%;top:26%}
+  .diya-sit{
+    width:22px;height:22px;color:#F3D9A8;
+    animation:diyaSitFlicker 2.3s ease-in-out infinite;
+  }
+  .diya-sit svg{width:100%;height:100%}
+  .diya-sit .flame{color:var(--diwali-flame)}
+  @keyframes diyaSitFlicker{
+    0%,100%{filter:drop-shadow(0 0 2px rgba(255,178,56,.55));opacity:.85}
+    50%{filter:drop-shadow(0 0 8px rgba(255,178,56,.95));opacity:1}
   }
 
   .carpet-flyby{
@@ -530,7 +530,7 @@
   <svg class="rangoli-mini rangoli-mini-left" id="rangoliMiniLeft" viewBox="0 0 44 44"></svg>
   <svg class="rangoli-mini rangoli-mini-right" id="rangoliMiniRight" viewBox="0 0 44 44"></svg>
 
-  <div class="lantern-layer" id="lanternLayer"></div>
+  <div class="diya-row" id="diyaRow"></div>
 
   <div class="carpet-flyby">
     <div class="carpet-glow"></div>
@@ -741,7 +741,7 @@
     <label class="cp-item"><span class="cp-num">4</span><input type="checkbox" id="t4"><span class="cp-copy"><span class="cp-name">Gold/maroon theme skin</span><span class="cp-desc">Recolors the header &amp; primary buttons only — page background stays untouched.</span></span></label>
     <label class="cp-item"><span class="cp-num">5</span><input type="checkbox" id="t5"><span class="cp-copy"><span class="cp-name">"Happy Diwali!" banner</span><span class="cp-desc">Banner strip above the feed with a message and a live countdown to Diwali.</span></span></label>
     <label class="cp-item"><span class="cp-num">6</span><input type="checkbox" id="t6"><span class="cp-copy"><span class="cp-name">Diya avatar frames</span><span class="cp-desc">Small diya graphics framing every profile avatar across the page.</span></span></label>
-    <label class="cp-item"><span class="cp-num">9</span><input type="checkbox" id="t9"><span class="cp-copy"><span class="cp-name">Diwali sky banner</span><span class="cp-desc">Horizontal scene strip below the logo, around the Feed/Milestone row — dusk sky, string lights, floating diya lanterns, a flying carpet of celebrating cartoon figures, and firework bursts. (The Diwali take on the "Santa's sleigh" banner.)</span></span></label>
+    <label class="cp-item"><span class="cp-num">9</span><input type="checkbox" id="t9"><span class="cp-copy"><span class="cp-name">Diwali sky banner</span><span class="cp-desc">Horizontal scene strip below the logo, around the Feed/Milestone row — dusk sky, string lights, diyas lined up along the bottom edge, a flying carpet of celebrating cartoon figures, and rockets that launch up and burst. (The Diwali take on the "Santa's sleigh" banner.)</span></span></label>
   </div>
 </div>
 
@@ -855,19 +855,17 @@
         lightsWrap.appendChild(bulb);
       }
     }
-    // floating diya lanterns
-    var lanternLayer = document.getElementById('lanternLayer');
-    if (lanternLayer.childElementCount === 0){
-      var durations = [19, 24, 21, 27];
-      var delays = [0, -8, -15, -4];
-      durations.forEach(function(dur, i){
-        var lantern = document.createElement('div');
-        lantern.className = 'lantern';
-        lantern.style.animationDuration = dur + 's';
-        lantern.style.animationDelay = delays[i] + 's';
-        lantern.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + DIYA_ICON_MARKUP + '</svg>';
-        lanternLayer.appendChild(lantern);
-      });
+    // diyas lined up along the bottom edge, each flickering independently
+    var diyaRow = document.getElementById('diyaRow');
+    if (diyaRow.childElementCount === 0){
+      var diyaCount = 10;
+      for (var d = 0; d < diyaCount; d++){
+        var diya = document.createElement('div');
+        diya.className = 'diya-sit';
+        diya.style.animationDelay = (-(d * 0.31)) + 's';
+        diya.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + DIYA_ICON_MARKUP + '</svg>';
+        diyaRow.appendChild(diya);
+      }
     }
   }
 
@@ -917,6 +915,47 @@
     requestAnimationFrame(frame);
   }
 
+  function easeOutQuad(t){ return t * (2 - t); }
+
+  // rocket: launches from the bottom of the strip, trailing sparks,
+  // then hands off to skyBurst once it reaches its peak
+  function skyRocket(){
+    var x = 24 + Math.random() * (skyCanvas.width - 48);
+    var targetY = 14 + Math.random() * (skyCanvas.height * 0.32);
+    var startY = skyCanvas.height - 6;
+    var start = performance.now();
+    var duration = 520;
+    var trail = [];
+
+    function frame(now){
+      var t = Math.min((now - start) / duration, 1);
+      var y = startY + (targetY - startY) * easeOutQuad(t);
+      trail.push(y);
+      if (trail.length > 8) trail.shift();
+
+      skyCtx.clearRect(0, 0, skyCanvas.width, skyCanvas.height);
+      trail.forEach(function(ty, i){
+        skyCtx.globalAlpha = ((i + 1) / trail.length) * 0.55;
+        skyCtx.fillStyle = '#FFD37D';
+        skyCtx.beginPath();
+        skyCtx.arc(x, ty, 1.5, 0, Math.PI * 2);
+        skyCtx.fill();
+      });
+      skyCtx.globalAlpha = 1;
+      skyCtx.shadowColor = '#FFB238';
+      skyCtx.shadowBlur = 8;
+      skyCtx.fillStyle = '#FFF3D6';
+      skyCtx.beginPath();
+      skyCtx.arc(x, y, 2.2, 0, Math.PI * 2);
+      skyCtx.fill();
+      skyCtx.shadowBlur = 0;
+
+      if (t < 1) requestAnimationFrame(frame);
+      else skyBurst(x, targetY);
+    }
+    requestAnimationFrame(frame);
+  }
+
   function startSkyFireworks(){
     sizeSkyCanvas();
     if (reduceMotion){
@@ -925,7 +964,7 @@
     }
     function schedule(){
       skyFireworkTimer = setTimeout(function(){
-        skyBurst(20 + Math.random() * (skyCanvas.width - 40), 12 + Math.random() * (skyCanvas.height * 0.4));
+        skyRocket();
         schedule();
       }, 1800 + Math.random() * 1600);
     }
