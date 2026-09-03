@@ -1,0 +1,1089 @@
+<title>Diwali Overlay Prototype</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@500;600;700&family=Inter:wght@400;500;600&display=swap">
+<style>
+  /* ============================================================
+     TOKENS — this prototype replicates one specific product's
+     existing light-mode skin (from the reference screenshot), so
+     it commits to that single visual world rather than adapting
+     to the viewer's OS theme. Background/colors are painted
+     explicitly so the page holds on either light or dark host chrome.
+     ============================================================ */
+  :root{
+    --bg:#F1F1F7;
+    --surface:#FFFFFF;
+    --border:#E8E8F1;
+    --text:#25253A;
+    --text-muted:#6E6E85;
+    --text-faint:#9C9CB0;
+    --primary:#5B4EE5;
+    --primary-dark:#4A3ECD;
+    --primary-tint:#EFECFD;
+    --primary-tint-2:#E2DBFB;
+    --announcement-bg:#FBEACD;
+    --announcement-btn:#17171F;
+    --badge-bg:#FDF1E1;
+    --badge-text:#C0760D;
+    --badge-border:#F0C787;
+    --shadow-card:0 1px 2px rgba(20,20,45,.04), 0 10px 26px -14px rgba(20,20,45,.16);
+    --radius-lg:18px;
+    --radius-md:12px;
+    --radius-full:999px;
+
+    /* Diwali overlay palette — only used by overlay features below */
+    --diwali-gold:#E4B24A;
+    --diwali-gold-bright:#FFD37D;
+    --diwali-maroon:#7C1F2E;
+    --diwali-maroon-deep:#4C0F18;
+    --diwali-orange:#E2650B;
+    --diwali-flame:#FFB238;
+    --diwali-cream:#FBEFD8;
+  }
+
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    background:var(--bg);
+    color:var(--text);
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  h1,h2,h3,h4{font-family:'Poppins',system-ui,sans-serif;margin:0;text-wrap:balance}
+  p{margin:0}
+  button{font-family:inherit;cursor:pointer}
+  a{color:var(--primary);text-decoration:none;font-weight:600}
+  img,svg{display:block}
+  button:focus-visible,input:focus-visible,a:focus-visible{outline:2px solid var(--primary);outline-offset:2px}
+  .icon{width:20px;height:20px;stroke:currentColor;fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:.001ms !important;animation-iteration-count:1 !important;transition-duration:.001ms !important;}
+  }
+
+  /* ============================================================
+     ANNOUNCEMENT BAR + HEADER + SUBNAV  (base chrome)
+     ============================================================ */
+  .announce-bar{
+    background:var(--announcement-bg);
+    display:flex;align-items:center;justify-content:center;gap:14px;
+    padding:10px 20px;font-size:13.5px;color:#3a3320;flex-wrap:wrap;
+  }
+  .announce-bar strong{font-weight:600}
+  .announce-btn{
+    background:var(--announcement-btn);color:#fff;border:none;border-radius:var(--radius-full);
+    padding:7px 16px;font-size:13px;font-weight:600;
+  }
+  .announce-x{background:none;border:none;color:#3a3320;font-size:15px;opacity:.6;line-height:1;padding:4px}
+
+  .site-header{
+    position:relative;background:var(--surface);border-bottom:1px solid var(--border);
+    overflow:hidden; /* clips rangoli corner motif */
+    transition:background .4s ease;
+  }
+  .header-inner{
+    max-width:1400px;margin:0 auto;padding:14px 28px;
+    display:flex;align-items:center;justify-content:space-between;gap:20px;position:relative;z-index:2;
+  }
+  .logo{display:flex;align-items:center;gap:9px}
+  .logo-mark{width:26px;height:26px}
+  .logo-text{font-family:'Poppins',sans-serif;font-size:19px;letter-spacing:.2px}
+  .logo-bold{font-weight:700;color:#232338}
+  .logo-thin{font-weight:500;color:#5b5b72}
+
+  .header-nav{display:flex;align-items:center;gap:22px}
+  .nav-icon{
+    background:none;border:none;color:#4b4b63;padding:6px;border-radius:10px;
+    position:relative;display:flex;transition:color .2s;
+  }
+  .nav-icon:hover{color:var(--primary)}
+  .nav-icon.active{color:var(--primary)}
+  .nav-icon.active::after{
+    content:"";position:absolute;left:50%;bottom:-15px;transform:translateX(-50%);
+    width:22px;height:2.5px;border-radius:2px;background:var(--primary);
+  }
+  .bell-wrap{position:relative}
+  .nav-badge{
+    position:absolute;top:1px;right:1px;background:#EF4444;color:#fff;font-size:10px;font-weight:700;
+    width:16px;height:16px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  }
+
+  .points-pill{
+    display:flex;align-items:center;gap:9px;background:var(--primary-tint);border-radius:var(--radius-full);
+    padding:7px 14px 7px 10px;transition:background .4s ease;
+  }
+  .points-pill .icon-wallet-badge{
+    width:26px;height:26px;border-radius:8px;background:var(--primary);color:#fff;
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;transition:background .4s ease;
+  }
+  .points-pill .icon-wallet-badge svg{width:15px;height:15px;stroke:#fff}
+  .points-pill .p-num{display:block;font-weight:700;font-size:14px;color:#232338;line-height:1.15}
+  .points-pill .p-label{display:block;font-size:10.5px;color:var(--text-muted)}
+
+  .avatar-wrap{position:relative;flex-shrink:0;border-radius:50%}
+  .avatar-wrap.sm{width:34px;height:34px}
+  .avatar-wrap.md{width:40px;height:40px}
+  .avatar-wrap.lg{width:78px;height:78px;margin:0 auto}
+  .avatar-svg{width:100%;height:100%;border-radius:50%}
+
+  .subnav{background:var(--surface);border-bottom:1px solid var(--border)}
+  .subnav-inner{
+    max-width:1400px;margin:0 auto;padding:10px 28px;
+    display:flex;align-items:center;gap:8px;flex-wrap:wrap;
+  }
+  .pill-tab{
+    background:none;border:none;padding:9px 18px;border-radius:var(--radius-full);
+    font-size:14px;font-weight:600;color:var(--text-muted);
+  }
+  .pill-tab.active{background:var(--primary-tint);color:var(--primary)}
+  .pill-tab:hover:not(.active){color:var(--text)}
+  .feed-score-pill{
+    margin-left:auto;display:flex;align-items:center;gap:10px;border:1px solid var(--border);
+    border-radius:var(--radius-full);padding:8px 16px;font-size:13px;color:var(--text);font-weight:600;
+  }
+  .feed-score-pill .track{width:70px;height:6px;border-radius:4px;background:#EDEDF4;overflow:hidden}
+  .feed-score-pill .fill{width:8%;height:100%;background:var(--primary)}
+
+  /* ============================================================
+     OVERLAY 5 — Diwali banner strip (top of feed)
+     ============================================================ */
+  .diwali-banner{display:none}
+  body.show-diwali-banner .diwali-banner{display:block}
+  .diwali-banner{
+    background:linear-gradient(90deg,var(--diwali-maroon-deep),var(--diwali-maroon) 45%,var(--diwali-orange) 130%);
+    color:#fff;position:relative;overflow:hidden;
+  }
+  .diwali-banner-inner{
+    max-width:1400px;margin:0 auto;padding:12px 28px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;
+    position:relative;z-index:1;
+  }
+  .diwali-banner .db-emoji{font-size:22px;filter:drop-shadow(0 0 6px rgba(255,178,56,.8))}
+  .diwali-banner .db-text{font-size:13.5px;font-weight:500;flex:1;min-width:200px}
+  .diwali-banner .db-text strong{font-family:'Poppins',sans-serif;font-size:15px;margin-right:6px}
+  .countdown{display:flex;gap:8px}
+  .cd-unit{
+    background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.22);border-radius:8px;
+    padding:5px 9px;min-width:42px;text-align:center;
+  }
+  .cd-unit span{display:block;font-family:'Poppins',sans-serif;font-weight:700;font-size:15px;font-variant-numeric:tabular-nums}
+  .cd-unit label{display:block;font-size:9px;text-transform:uppercase;letter-spacing:.5px;opacity:.8;margin-top:1px}
+
+  /* ============================================================
+     BREADCRUMB + MAIN LAYOUT
+     ============================================================ */
+  .breadcrumb-row{
+    max-width:1400px;margin:0 auto;padding:18px 28px 0;
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .breadcrumb{font-size:13.5px;color:var(--text-muted)}
+  .breadcrumb strong{color:var(--text)}
+  .filter-btn{
+    background:none;border:none;color:var(--primary);font-weight:600;font-size:13.5px;
+    display:flex;align-items:center;gap:6px;
+  }
+
+  .main-grid{
+    max-width:1400px;margin:0 auto;padding:16px 28px 60px;
+    display:grid;grid-template-columns:280px 1fr 300px;gap:18px;align-items:start;
+  }
+  .card{
+    background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);
+    padding:20px;box-shadow:var(--shadow-card);
+  }
+
+  /* ---- left sidebar ---- */
+  .left-sidebar{display:flex;flex-direction:column;gap:16px;position:sticky;top:16px}
+  .profile-card{text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}
+  .profile-card h3{font-size:16.5px}
+  .profile-card .muted{color:var(--text-muted);font-size:13px}
+  .badge-pill{
+    background:var(--badge-bg);color:var(--badge-text);border:1px solid var(--badge-border);
+    border-radius:var(--radius-full);padding:6px 14px;font-size:12.5px;font-weight:700;
+  }
+  .stats-row{display:flex;width:100%;margin-top:6px;border-top:1px solid var(--border);padding-top:14px}
+  .stats-row .stat{flex:1;text-align:center}
+  .stats-row .stat strong{display:block;font-family:'Poppins',sans-serif;font-size:17px}
+  .stats-row .stat span{font-size:11.5px;color:var(--text-muted)}
+  .feedback-card{text-align:center;display:flex;flex-direction:column;gap:12px;align-items:center}
+  .feedback-card p{font-family:'Poppins',sans-serif;font-weight:600;font-size:14.5px}
+
+  /* ---- center feed ---- */
+  .center-feed{display:flex;flex-direction:column;gap:16px;min-width:0}
+  .recognize-card{display:flex;flex-direction:column;gap:14px}
+  .recognize-input-row{display:flex;align-items:center;gap:12px}
+  .fake-input{
+    flex:1;background:#F4F4F9;border-radius:var(--radius-full);padding:12px 18px;
+    color:var(--text-faint);font-size:14px;
+  }
+  .recognize-actions{display:flex;gap:22px;border-top:1px solid var(--border);padding-top:14px;flex-wrap:wrap}
+  .recognize-actions button{
+    background:none;border:none;display:flex;align-items:center;gap:7px;
+    font-weight:600;font-size:13.5px;color:var(--text);
+  }
+  .recognize-actions button.a-recognize .icon{stroke:#2AA876}
+  .recognize-actions button.a-greet .icon{stroke:#4B4B63}
+  .recognize-actions button.a-search .icon{stroke:#3B82F6}
+
+  .ai-nudge-card{
+    display:flex;align-items:center;gap:14px;background:linear-gradient(90deg,#F3F0FE,#EEF6FE);
+    border-color:#E4DEFB;
+  }
+  .ai-nudge-card .sparkle{font-size:20px;flex-shrink:0}
+  .ai-nudge-card .nudge-body{flex:1}
+  .ai-nudge-card strong{font-family:'Poppins',sans-serif;font-size:14.5px}
+  .ai-badge{
+    background:var(--primary);color:#fff;font-size:9.5px;font-weight:700;border-radius:6px;
+    padding:2px 6px;margin-left:8px;vertical-align:middle;letter-spacing:.4px;
+  }
+  .ai-nudge-card p{color:var(--text-muted);font-size:12.5px;margin-top:3px}
+  .btn-secondary{
+    background:var(--primary-tint-2);color:var(--primary-dark);border:none;border-radius:var(--radius-full);
+    padding:10px 18px;font-weight:700;font-size:13px;white-space:nowrap;flex-shrink:0;
+  }
+
+  .sort-row{font-size:13px;color:var(--text-muted);padding:2px 4px}
+  .sort-row strong{color:var(--primary);font-weight:700}
+
+  .feed-list{display:flex;flex-direction:column;gap:14px}
+  .feed-post{display:flex;flex-direction:column;gap:12px}
+  .post-header{display:flex;align-items:flex-start;gap:12px}
+  .post-header .who{font-size:13.5px;color:var(--text)}
+  .post-header .timestamp{font-size:12px;color:var(--text-faint);margin-top:2px}
+  .post-message{font-size:13.5px;color:var(--text);line-height:1.5;padding-left:52px}
+
+  /* ---- right sidebar ---- */
+  .right-sidebar{display:flex;flex-direction:column;gap:16px;position:sticky;top:16px}
+  .promo-card{
+    background:linear-gradient(160deg,#FBF3E6,#FDEFE4);border-color:#F3E4CC;overflow:hidden;position:relative;
+    padding:18px 20px 22px;
+  }
+  .promo-badge{
+    display:inline-flex;align-items:center;gap:4px;background:#fff;border-radius:8px;padding:4px 10px;
+    font-family:'Poppins',sans-serif;font-weight:700;font-size:12px;color:#E2650B;box-shadow:var(--shadow-card);
+  }
+  .promo-card h3{font-size:15px;margin-top:14px;color:#4b4b63;font-weight:500}
+  .promo-card .vrise{display:block;font-size:24px;font-weight:700;color:#3730A3;margin-top:2px}
+  .promo-illustration{
+    margin-top:16px;height:90px;border-radius:12px;
+    background:linear-gradient(135deg,#FDE3C7,#F7C99A);
+    display:flex;align-items:center;justify-content:center;font-size:30px;
+  }
+  .milestones-card h4{font-size:14.5px;margin-bottom:12px}
+  .milestone-row{display:flex;align-items:center;gap:10px;padding:8px 0;border-top:1px solid var(--border)}
+  .milestone-row:first-of-type{border-top:none}
+  .milestone-row .m-date{
+    width:38px;height:38px;border-radius:10px;background:var(--primary-tint);color:var(--primary-dark);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:10px;font-weight:700;
+    flex-shrink:0;line-height:1.1;
+  }
+  .milestone-row .m-info p{font-size:12.5px;font-weight:600}
+  .milestone-row .m-info span{font-size:11px;color:var(--text-muted)}
+
+  /* ============================================================
+     OVERLAY 2 — Rangoli corner motif (header decoration)
+     ============================================================ */
+  .rangoli-corner{position:absolute;top:0;width:150px;height:150px;pointer-events:none;opacity:0;transition:opacity .5s ease;z-index:1}
+  body.show-rangoli .rangoli-corner{opacity:.9}
+  .rangoli-left{left:-40px;transform:scaleX(1)}
+  .rangoli-right{right:-40px;transform:scaleX(-1)}
+
+  /* ============================================================
+     OVERLAY 9 — Diwali sky banner: a horizontal festive scene
+     strip below the logo/header (the "flying sleigh" equivalent) —
+     dusk sky, string lights, floating diya lanterns, a flying
+     carpet of celebrating pictogram figures, and periodic
+     firework bursts.
+     ============================================================ */
+  .diwali-sky-strip{display:none}
+  body.show-sky-strip .diwali-sky-strip{display:block}
+  .diwali-sky-strip{
+    position:relative;height:132px;overflow:hidden;
+    background:linear-gradient(180deg,#25091a 0%,#611c2c 42%,#a83d22 76%,#e0902f 100%);
+    border-bottom:2px solid var(--diwali-gold);
+  }
+  .sky-skyline{
+    position:absolute;left:0;right:0;bottom:0;height:26px;display:flex;align-items:flex-end;
+    opacity:.92;pointer-events:none;
+  }
+  .sky-skyline svg{display:block;width:100%;height:100%}
+
+  .string-wire{position:absolute;top:11px;left:6px;right:6px;height:1px;background:rgba(255,224,168,.35);pointer-events:none}
+  .string-lights{position:absolute;top:0;left:6px;right:6px;height:24px;pointer-events:none}
+  .bulb{
+    position:absolute;top:8px;width:7px;height:7px;border-radius:50%;transform:translate(-50%,0);
+    animation:bulbTwinkle 2.6s ease-in-out infinite;
+  }
+  @keyframes bulbTwinkle{0%,100%{opacity:.45;filter:drop-shadow(0 0 1px currentColor)}50%{opacity:1;filter:drop-shadow(0 0 5px currentColor)}}
+
+  .rangoli-mini{position:absolute;top:14px;width:46px;height:46px;opacity:.85;pointer-events:none}
+  .rangoli-mini-left{left:10px}
+  .rangoli-mini-right{right:10px}
+
+  .lantern-layer{position:absolute;inset:0;pointer-events:none}
+  .lantern{
+    position:absolute;width:26px;height:26px;color:#F3D9A8;
+    animation-name:lanternDrift;animation-timing-function:linear;animation-iteration-count:infinite;
+  }
+  .lantern svg{width:100%;height:100%;filter:drop-shadow(0 0 6px rgba(255,178,56,.85))}
+  .lantern .flame{color:var(--diwali-flame)}
+  @keyframes lanternDrift{
+    0%{left:-8%;top:26%}
+    25%{top:16%}
+    50%{top:30%}
+    75%{top:18%}
+    100%{left:106%;top:26%}
+  }
+
+  .carpet-flyby{
+    position:absolute;top:38%;width:190px;height:90px;pointer-events:none;
+    animation:carpetDrift 17s linear infinite;
+  }
+  .carpet-flyby svg{width:100%;height:100%;overflow:visible}
+  @keyframes carpetDrift{
+    0%{left:-22%;transform:translateY(0)}
+    30%{transform:translateY(-8px)}
+    60%{transform:translateY(4px)}
+    100%{left:112%;transform:translateY(0)}
+  }
+  .carpet-glow{
+    position:absolute;left:50%;top:66%;width:120px;height:34px;transform:translate(-50%,-50%);
+    background:radial-gradient(ellipse at center, rgba(255,178,56,.5), rgba(255,178,56,0) 70%);
+    filter:blur(2px);
+  }
+
+  #skyFireworksCanvas{position:absolute;inset:0;pointer-events:none}
+
+  /* ============================================================
+     OVERLAY 4 — Warm gold/maroon theme skin (header + primary buttons only)
+     ============================================================ */
+  body.diwali-theme .site-header{background:linear-gradient(120deg,var(--diwali-maroon-deep),var(--diwali-maroon) 60%,#8a2a1f)}
+  body.diwali-theme .logo-bold{color:#fff}
+  body.diwali-theme .logo-thin{color:var(--diwali-gold-bright)}
+  body.diwali-theme .logo-mark{stroke:var(--diwali-gold-bright) !important}
+  body.diwali-theme .nav-icon{color:#EFD9C4}
+  body.diwali-theme .nav-icon.active,
+  body.diwali-theme .nav-icon:hover{color:var(--diwali-gold-bright)}
+  body.diwali-theme .nav-icon.active::after{background:var(--diwali-gold-bright)}
+  body.diwali-theme .points-pill{background:rgba(255,211,125,.16)}
+  body.diwali-theme .points-pill .p-num,
+  body.diwali-theme .points-pill .p-label{color:#fff}
+  body.diwali-theme .points-pill .icon-wallet-badge{background:var(--diwali-gold-bright);color:var(--diwali-maroon-deep)}
+  body.diwali-theme .points-pill .icon-wallet-badge svg{stroke:var(--diwali-maroon-deep)}
+  body.diwali-theme .announce-btn{background:var(--diwali-maroon)}
+  body.diwali-theme .pill-tab.active{background:var(--diwali-gold);color:var(--diwali-maroon-deep)}
+  body.diwali-theme .feed-score-pill .fill{background:var(--diwali-gold)}
+  body.diwali-theme .btn-primary{background:var(--diwali-maroon);color:#fff}
+  body.diwali-theme .btn-primary:hover{background:var(--diwali-maroon-deep)}
+  body.diwali-theme .btn-secondary{background:var(--diwali-cream);color:var(--diwali-maroon)}
+  body.diwali-theme .recognize-actions button.a-recognize .icon{stroke:var(--diwali-orange)}
+  .btn-primary{
+    background:var(--primary);color:#fff;border:none;border-radius:var(--radius-full);
+    padding:11px 22px;font-weight:700;font-size:13.5px;transition:background .3s ease;
+  }
+  .btn-primary:hover{background:var(--primary-dark)}
+
+  /* ============================================================
+     OVERLAY 6 — Diya / firecracker frame around avatars
+     ============================================================ */
+  .diya-frame{display:none;position:absolute;inset:0;pointer-events:none}
+  body.show-diya-frames .diya-frame{display:block}
+  .diya-frame .frame-ring{
+    position:absolute;inset:-5px;border-radius:50%;border:2px dashed var(--diwali-gold);
+    animation:frameSpin 14s linear infinite;
+  }
+  .diya-frame .frame-diya{
+    position:absolute;font-size:13px;line-height:1;filter:drop-shadow(0 0 3px rgba(255,178,56,.9));
+  }
+  .avatar-wrap.lg .diya-frame .frame-diya{font-size:19px}
+  .avatar-wrap.sm .diya-frame .frame-diya{font-size:10px}
+  .frame-diya.t{top:-9px;left:50%;transform:translateX(-50%)}
+  .frame-diya.b{bottom:-9px;left:50%;transform:translate(-50%,0) rotate(180deg)}
+  .frame-diya.l{left:-9px;top:50%;transform:translateY(-50%) rotate(-90deg)}
+  .frame-diya.r{right:-9px;top:50%;transform:translateY(-50%) rotate(90deg)}
+  @keyframes frameSpin{to{transform:rotate(360deg)}}
+
+  /* ============================================================
+     OVERLAY 1 — Falling diya / sparkle particles (canvas)
+     ============================================================ */
+  #particleCanvas{position:fixed;inset:0;z-index:400;pointer-events:none;display:none}
+  body.show-particles #particleCanvas{display:block}
+
+  /* ============================================================
+     CONTROL PANEL — demo-only, not part of the product UI
+     ============================================================ */
+  .control-panel{
+    position:fixed;top:16px;right:16px;width:302px;max-height:calc(100vh - 32px);overflow-y:auto;
+    background:#1B1420;color:#F1E9E2;border-radius:16px;z-index:900;
+    box-shadow:0 20px 50px -12px rgba(0,0,0,.5);border:1px solid #3A2A32;
+    font-family:'Inter',sans-serif;
+  }
+  .cp-header{
+    position:sticky;top:0;background:#1B1420;padding:14px 16px 10px;border-bottom:1px solid #3A2A32;
+    display:flex;align-items:center;justify-content:space-between;gap:10px;z-index:2;
+  }
+  .cp-title-main{font-family:'Poppins',sans-serif;font-size:13.5px;font-weight:600;display:flex;align-items:center;gap:7px}
+  .cp-sub{font-size:11px;color:#B6A7B0;padding:2px 16px 12px;border-bottom:1px solid #3A2A32}
+  .cp-collapse{
+    background:#2E2029;border:1px solid #4a3640;color:#F1E9E2;border-radius:7px;width:24px;height:24px;
+    font-size:15px;line-height:1;flex-shrink:0;
+  }
+  .cp-body{padding:8px 10px 14px;display:flex;flex-direction:column;gap:3px}
+  .cp-body.collapsed{display:none}
+  .cp-item{
+    display:flex;align-items:flex-start;gap:10px;padding:9px 8px;border-radius:10px;cursor:pointer;
+  }
+  .cp-item:hover{background:#2A1E27}
+  .cp-item input{margin-top:3px;width:15px;height:15px;accent-color:var(--diwali-gold);flex-shrink:0;cursor:pointer}
+  .cp-num{
+    font-family:'Poppins',sans-serif;font-size:10px;font-weight:700;color:#7a6a72;width:14px;flex-shrink:0;
+    padding-top:1px;
+  }
+  .cp-copy{display:flex;flex-direction:column;gap:1px}
+  .cp-name{font-size:12.5px;font-weight:600;color:#fff}
+  .cp-desc{font-size:11px;color:#B6A7B0;line-height:1.4}
+
+  /* ============================================================
+     RESPONSIVE
+     ============================================================ */
+  @media (max-width:1080px){
+    .main-grid{grid-template-columns:1fr;}
+    .left-sidebar,.right-sidebar{position:static}
+    .control-panel{width:270px}
+  }
+  @media (max-width:640px){
+    .header-inner{flex-wrap:wrap;gap:12px}
+    .header-nav{gap:14px}
+    .points-pill .p-label{display:none}
+    .control-panel{left:10px;right:10px;width:auto}
+    .post-message,.post-actions{padding-left:0}
+  }
+</style>
+
+<!-- =====================================================================
+     BASE APP MOCKUP — approximates the reference product screenshot
+     ===================================================================== -->
+<div class="announce-bar">
+  🚀 <strong>New:</strong> Recognize colleagues right from your favorite tools. Vantage Circle MCP is here.
+  <button class="announce-btn">Try it now</button>
+  <button class="announce-x">✕</button>
+</div>
+
+<header class="site-header" id="siteHeader">
+  <svg class="rangoli-corner rangoli-left" id="rangoliLeft" viewBox="0 0 150 150"></svg>
+  <svg class="rangoli-corner rangoli-right" id="rangoliRight" viewBox="0 0 150 150"></svg>
+
+  <div class="header-inner">
+    <div class="logo">
+      <svg class="logo-mark" viewBox="0 0 24 24" fill="none" stroke="var(--primary)" stroke-width="2" stroke-linecap="round">
+        <path d="M12 2v20M2 12h20M5 5l14 14M19 5 5 19"/>
+      </svg>
+      <span class="logo-text"><span class="logo-bold">VANTAGE</span><span class="logo-thin">CIRCLE</span></span>
+    </div>
+
+    <nav class="header-nav">
+      <button class="nav-icon" title="Home"><svg class="icon" viewBox="0 0 24 24"><path d="M4 11.5 12 4l8 7.5"/><path d="M6 10v9a1 1 0 0 0 1 1h3v-6h4v6h3a1 1 0 0 0 1-1v-9"/></svg></button>
+      <button class="nav-icon active" title="Dashboard"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg></button>
+      <button class="nav-icon" title="Recognitions"><svg class="icon" viewBox="0 0 24 24"><path d="M12 21s-7.5-4.6-10-9.2C.3 8.4 1.9 5 5.4 5c2 0 3.6 1.1 4.6 2.7C11 6.1 12.6 5 14.6 5c3.5 0 5.1 3.4 3.4 6.8C20.5 16.4 12 21 12 21z"/></svg></button>
+      <button class="nav-icon" title="Rewards"><svg class="icon" viewBox="0 0 24 24"><circle cx="9" cy="20" r="1"/><circle cx="18" cy="20" r="1"/><path d="M3 4h2l2.4 11.5a2 2 0 0 0 2 1.6h7.2a2 2 0 0 0 2-1.6L21 8H6"/></svg></button>
+
+      <button class="nav-icon bell-wrap" title="Notifications">
+        <svg class="icon icon-bell" viewBox="0 0 24 24"><path d="M6 9a6 6 0 0 1 12 0c0 4 1.5 5.5 1.5 5.5H4.5S6 13 6 9z"/><path d="M10 18a2 2 0 0 0 4 0"/></svg>
+        <span class="nav-badge">10</span>
+      </button>
+
+      <div class="points-pill">
+        <span class="icon-wallet-badge"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="14" rx="3"/><path d="M2 10h20"/><circle cx="17" cy="14" r="1.1"/></svg></span>
+        <span><span class="p-num">80</span><span class="p-label">Vantage&nbsp;Points</span></span>
+      </div>
+
+      <span class="avatar-wrap md" style="--av-bg:#E7DEFB;--av-fg:#8B7FE8">
+        <svg class="avatar-svg" viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="var(--av-bg)"/><circle cx="20" cy="16.5" r="6.3" fill="var(--av-fg)"/><path d="M8 33c1.6-6.4 7-9.8 12-9.8s10.4 3.4 12 9.8" fill="var(--av-fg)"/></svg>
+        <span class="diya-frame"><span class="frame-ring"></span><span class="frame-diya t">🪔</span><span class="frame-diya r">🪔</span><span class="frame-diya b">🪔</span><span class="frame-diya l">🪔</span></span>
+      </span>
+    </nav>
+  </div>
+</header>
+
+<!-- OVERLAY 9: Diwali sky banner (horizontal festive scene, below the logo) -->
+<div class="diwali-sky-strip" id="diwaliSkyStrip">
+  <div class="sky-skyline">
+    <svg viewBox="0 0 1200 60" preserveAspectRatio="none">
+      <g fill="#230917">
+        <rect x="0" y="30" width="60" height="30"/>
+        <polygon points="30,10 46,30 14,30"/>
+        <rect x="90" y="38" width="34" height="22"/>
+        <rect x="150" y="24" width="46" height="36"/>
+        <polygon points="173,6 191,24 155,24"/>
+        <rect x="230" y="34" width="30" height="26"/>
+        <rect x="900" y="30" width="60" height="30"/>
+        <rect x="990" y="38" width="34" height="22"/>
+        <rect x="1050" y="24" width="46" height="36"/>
+        <polygon points="1073,6 1091,24 1055,24"/>
+        <rect x="1130" y="34" width="30" height="26"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="string-wire"></div>
+  <div class="string-lights" id="stringLights"></div>
+
+  <svg class="rangoli-mini rangoli-mini-left" id="rangoliMiniLeft" viewBox="0 0 44 44"></svg>
+  <svg class="rangoli-mini rangoli-mini-right" id="rangoliMiniRight" viewBox="0 0 44 44"></svg>
+
+  <div class="lantern-layer" id="lanternLayer"></div>
+
+  <div class="carpet-flyby">
+    <div class="carpet-glow"></div>
+    <svg viewBox="0 0 220 100">
+      <!-- carpet -->
+      <path d="M28 72 L192 72 L172 86 L48 86 Z" fill="var(--diwali-maroon)"/>
+      <path d="M28 72 L192 72 L188 76 L32 76 Z" fill="var(--diwali-gold)"/>
+      <g stroke="var(--diwali-gold)" stroke-width="2">
+        <line x1="30" y1="86" x2="26" y2="94"/><line x1="46" y1="86" x2="43" y2="94"/>
+        <line x1="174" y1="86" x2="178" y2="94"/><line x1="190" y1="86" x2="194" y2="94"/>
+      </g>
+      <!-- figure A: torch/diya raised -->
+      <g stroke="var(--diwali-gold-bright)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="62" cy="40" r="7" fill="var(--diwali-gold-bright)" stroke="none"/>
+        <path d="M62 47 62 64"/>
+        <path d="M62 64 54 75"/>
+        <path d="M62 64 70 75"/>
+        <path d="M62 52 50 45"/>
+        <path d="M62 52 66 33"/>
+      </g>
+      <ellipse cx="68" cy="29" rx="4" ry="2" fill="var(--diwali-maroon)"/>
+      <path d="M68 27c-1.3-1.3-1.3-2.8 0-4 1.3 1.2 1.3 2.7 0 4z" fill="var(--diwali-flame)"/>
+      <!-- figure B: dancing, sparkler out -->
+      <g stroke="var(--diwali-gold-bright)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="110" cy="36" r="7" fill="var(--diwali-gold-bright)" stroke="none"/>
+        <path d="M110 43 112 60"/>
+        <path d="M112 60Q100 66 95 78"/>
+        <path d="M112 60Q123 64 129 74"/>
+        <path d="M110 48 97 33"/>
+        <path d="M112 50 127 45"/>
+      </g>
+      <g stroke="var(--diwali-flame)" stroke-width="1.6" stroke-linecap="round">
+        <path d="M97 33 93 29M97 33 91 34M97 33 95 27"/>
+      </g>
+      <!-- figure C: clap/dance -->
+      <g stroke="var(--diwali-gold-bright)" stroke-width="3" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="158" cy="40" r="7" fill="var(--diwali-gold-bright)" stroke="none"/>
+        <path d="M158 47 158 64"/>
+        <path d="M158 64 148 76"/>
+        <path d="M158 64 168 76"/>
+        <path d="M158 52Q148 46 146 35"/>
+        <path d="M158 52Q168 46 170 35"/>
+      </g>
+      <circle cx="158" cy="32" r="2" fill="var(--diwali-flame)"/>
+    </svg>
+  </div>
+
+  <canvas id="skyFireworksCanvas"></canvas>
+</div>
+
+<nav class="subnav">
+  <div class="subnav-inner">
+    <button class="pill-tab active">Feed</button>
+    <button class="pill-tab">Milestone</button>
+    <button class="pill-tab">Leaderboard</button>
+    <button class="pill-tab">Announcement</button>
+    <div class="feed-score-pill">My Feed Score <span class="track"><span class="fill"></span></span> 1</div>
+  </div>
+</nav>
+
+<!-- OVERLAY 5: Diwali banner strip -->
+<div class="diwali-banner">
+  <div class="diwali-banner-inner">
+    <span class="db-emoji">🪔</span>
+    <span class="db-text"><strong>Happy Diwali!</strong>May this festival of lights bring joy, prosperity &amp; well-earned recognition to your whole team.</span>
+    <div class="countdown" id="countdown" aria-label="Countdown to Diwali">
+      <div class="cd-unit"><span id="cdDays">00</span><label>Days</label></div>
+      <div class="cd-unit"><span id="cdHours">00</span><label>Hrs</label></div>
+      <div class="cd-unit"><span id="cdMins">00</span><label>Min</label></div>
+      <div class="cd-unit"><span id="cdSecs">00</span><label>Sec</label></div>
+    </div>
+  </div>
+</div>
+
+<div class="breadcrumb-row">
+  <div class="breadcrumb">Social Recognitions <span>›</span> <strong>Feed</strong></div>
+  <button class="filter-btn">Select Filter <svg class="icon" style="width:16px;height:16px" viewBox="0 0 24 24"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/><circle cx="9" cy="6" r="2"/><circle cx="16" cy="12" r="2"/><circle cx="9" cy="18" r="2"/></svg></button>
+</div>
+
+<div class="main-grid">
+  <!-- LEFT SIDEBAR -->
+  <aside class="left-sidebar">
+    <div class="card profile-card">
+      <span class="avatar-wrap lg" style="--av-bg:#E7DEFB;--av-fg:#8B7FE8">
+        <svg class="avatar-svg" viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="var(--av-bg)"/><circle cx="20" cy="16.5" r="6.3" fill="var(--av-fg)"/><path d="M8 33c1.6-6.4 7-9.8 12-9.8s10.4 3.4 12 9.8" fill="var(--av-fg)"/></svg>
+        <span class="diya-frame"><span class="frame-ring"></span><span class="frame-diya t">🪔</span><span class="frame-diya r">🪔</span><span class="frame-diya b">🪔</span><span class="frame-diya l">🪔</span></span>
+      </span>
+      <h3>Kamalika Phukan</h3>
+      <p class="muted">North America</p>
+      <div class="badge-pill">🏆 Top Collaborator</div>
+      <div class="stats-row">
+        <div class="stat"><strong>30</strong><span>Awards</span></div>
+        <div class="stat"><strong>53</strong><span>Badges</span></div>
+        <div class="stat"><strong>9</strong><span>Greetings</span></div>
+      </div>
+    </div>
+    <div class="card feedback-card">
+      <p>Your voice is important to us</p>
+      <button class="btn-primary">Share Feedback</button>
+    </div>
+  </aside>
+
+  <!-- CENTER FEED -->
+  <section class="center-feed">
+    <div class="card recognize-card">
+      <div class="recognize-input-row">
+        <span class="avatar-wrap sm" style="--av-bg:#E7DEFB;--av-fg:#8B7FE8">
+          <svg class="avatar-svg" viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="var(--av-bg)"/><circle cx="20" cy="16.5" r="6.3" fill="var(--av-fg)"/><path d="M8 33c1.6-6.4 7-9.8 12-9.8s10.4 3.4 12 9.8" fill="var(--av-fg)"/></svg>
+          <span class="diya-frame"><span class="frame-ring"></span><span class="frame-diya t">🪔</span><span class="frame-diya r">🪔</span><span class="frame-diya b">🪔</span><span class="frame-diya l">🪔</span></span>
+        </span>
+        <div class="fake-input">Start recognizing here…</div>
+      </div>
+      <div class="recognize-actions">
+        <button class="a-recognize"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="9" r="5"/><path d="M9 13.5 7 21l5-2.5L17 21l-2-7.5"/></svg>Recognize</button>
+        <button class="a-greet"><svg class="icon" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m3 7 9 6 9-6"/></svg>Greet</button>
+        <button class="a-search"><svg class="icon" viewBox="0 0 24 24"><circle cx="11" cy="11" r="6"/><path d="m20 20-3.5-3.5"/></svg>Search</button>
+      </div>
+    </div>
+
+    <div class="card ai-nudge-card">
+      <span class="sparkle">✨</span>
+      <div class="nudge-body">
+        <strong>Great work leaves clues. Smart Nudge finds them.<span class="ai-badge">AI</span></strong>
+        <p>Discover the moments that stood out, and the colleagues behind them.</p>
+      </div>
+      <button class="btn-secondary">Show moments</button>
+    </div>
+
+    <div class="sort-row">Sort By: <strong>Recent ▾</strong></div>
+
+    <div class="feed-list">
+      <article class="card feed-post">
+        <div class="post-header">
+          <span class="avatar-wrap sm" style="--av-bg:#FBE3D3;--av-fg:#E29154">
+            <svg class="avatar-svg" viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="var(--av-bg)"/><circle cx="20" cy="16.5" r="6.3" fill="var(--av-fg)"/><path d="M8 33c1.6-6.4 7-9.8 12-9.8s10.4 3.4 12 9.8" fill="var(--av-fg)"/></svg>
+            <span class="diya-frame"><span class="frame-ring"></span><span class="frame-diya t">🪔</span><span class="frame-diya r">🪔</span><span class="frame-diya b">🪔</span><span class="frame-diya l">🪔</span></span>
+          </span>
+          <div class="who"><a>Ankur Duarah</a> was appreciated by <a>Md. Nur Islam Rohman</a><div class="timestamp">1 hr ago</div></div>
+        </div>
+        <p class="post-message">Thank you for being an active part of our team.</p>
+      </article>
+
+      <article class="card feed-post">
+        <div class="post-header">
+          <span class="avatar-wrap sm" style="--av-bg:#DCF3E8;--av-fg:#3FAE7E">
+            <svg class="avatar-svg" viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="var(--av-bg)"/><circle cx="20" cy="16.5" r="6.3" fill="var(--av-fg)"/><path d="M8 33c1.6-6.4 7-9.8 12-9.8s10.4 3.4 12 9.8" fill="var(--av-fg)"/></svg>
+            <span class="diya-frame"><span class="frame-ring"></span><span class="frame-diya t">🪔</span><span class="frame-diya r">🪔</span><span class="frame-diya b">🪔</span><span class="frame-diya l">🪔</span></span>
+          </span>
+          <div class="who"><a>Priya Sharma</a> was appreciated by <a>Rahul Mehta</a><div class="timestamp">3 hrs ago</div></div>
+        </div>
+        <p class="post-message">Huge thanks for stepping up on the client escalation this week — your calm under pressure made all the difference.</p>
+      </article>
+
+      <article class="card feed-post">
+        <div class="post-header">
+          <span class="avatar-wrap sm" style="--av-bg:#FDE7EF;--av-fg:#D4638F">
+            <svg class="avatar-svg" viewBox="0 0 40 40"><circle cx="20" cy="20" r="20" fill="var(--av-bg)"/><circle cx="20" cy="16.5" r="6.3" fill="var(--av-fg)"/><path d="M8 33c1.6-6.4 7-9.8 12-9.8s10.4 3.4 12 9.8" fill="var(--av-fg)"/></svg>
+            <span class="diya-frame"><span class="frame-ring"></span><span class="frame-diya t">🪔</span><span class="frame-diya r">🪔</span><span class="frame-diya b">🪔</span><span class="frame-diya l">🪔</span></span>
+          </span>
+          <div class="who"><a>Wei Lin</a> was appreciated by <a>Kamalika Phukan</a><div class="timestamp">Yesterday</div></div>
+        </div>
+        <p class="post-message">Shoutout for mentoring two new hires this month — onboarding feedback has never been this good.</p>
+      </article>
+    </div>
+  </section>
+
+  <!-- RIGHT SIDEBAR -->
+  <aside class="right-sidebar">
+    <div class="card promo-card">
+      <span class="promo-badge">✦ AIRe</span>
+      <h3>Welcome to<span class="vrise">V-RISE</span></h3>
+      <div class="promo-illustration">🎉</div>
+    </div>
+    <div class="card milestones-card">
+      <h4>Upcoming Milestones</h4>
+      <div class="milestone-row">
+        <div class="m-date">SEP<br>08</div>
+        <div class="m-info"><p>Tanvi Rao</p><span>3 yr work anniversary</span></div>
+      </div>
+      <div class="milestone-row">
+        <div class="m-date">SEP<br>14</div>
+        <div class="m-info"><p>Diego Fernandez</p><span>Birthday</span></div>
+      </div>
+      <div class="milestone-row">
+        <div class="m-date">SEP<br>21</div>
+        <div class="m-info"><p>Sara Ahmed</p><span>1 yr work anniversary</span></div>
+      </div>
+    </div>
+  </aside>
+</div>
+
+<!-- OVERLAY 1: falling particles canvas -->
+<canvas id="particleCanvas"></canvas>
+
+<!-- =====================================================================
+     CONTROL PANEL — demo-only. Not part of the product UI; lets the
+     client success team compare each Diwali treatment independently.
+     ===================================================================== -->
+<div class="control-panel" id="controlPanel">
+  <div class="cp-header">
+    <span class="cp-title-main">🪔 Diwali Overlay — Demo Controls</span>
+    <button class="cp-collapse" id="cpCollapse" aria-label="Collapse panel">–</button>
+  </div>
+  <div class="cp-sub">Demo tool only, not part of the real UI. Toggle each treatment independently.</div>
+  <div class="cp-body" id="cpBody">
+    <label class="cp-item"><span class="cp-num">1</span><input type="checkbox" id="t1"><span class="cp-copy"><span class="cp-name">Falling diyas &amp; sparkles</span><span class="cp-desc">Ambient particle animation drifting down the whole page, like snowfall in warm gold/orange.</span></span></label>
+    <label class="cp-item"><span class="cp-num">2</span><input type="checkbox" id="t2"><span class="cp-copy"><span class="cp-name">Rangoli header corners</span><span class="cp-desc">Decorative mandala motif rendered in the top-left &amp; top-right corners of the header.</span></span></label>
+    <label class="cp-item"><span class="cp-num">4</span><input type="checkbox" id="t4"><span class="cp-copy"><span class="cp-name">Gold/maroon theme skin</span><span class="cp-desc">Recolors the header &amp; primary buttons only — page background stays untouched.</span></span></label>
+    <label class="cp-item"><span class="cp-num">5</span><input type="checkbox" id="t5"><span class="cp-copy"><span class="cp-name">"Happy Diwali!" banner</span><span class="cp-desc">Banner strip above the feed with a message and a live countdown to Diwali.</span></span></label>
+    <label class="cp-item"><span class="cp-num">6</span><input type="checkbox" id="t6"><span class="cp-copy"><span class="cp-name">Diya avatar frames</span><span class="cp-desc">Small diya graphics framing every profile avatar across the page.</span></span></label>
+    <label class="cp-item"><span class="cp-num">9</span><input type="checkbox" id="t9"><span class="cp-copy"><span class="cp-name">Diwali sky banner</span><span class="cp-desc">Horizontal scene strip below the logo, around the Feed/Milestone row — dusk sky, string lights, floating diya lanterns, a flying carpet of celebrating cartoon figures, and firework bursts. (The Diwali take on the "Santa's sleigh" banner.)</span></span></label>
+  </div>
+</div>
+
+<script>
+(function(){
+  "use strict";
+  var body = document.body;
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  function bindToggle(id, className){
+    var el = document.getElementById(id);
+    el.addEventListener('change', function(){
+      body.classList.toggle(className, el.checked);
+    });
+  }
+  bindToggle('t1', 'show-particles');
+  bindToggle('t2', 'show-rangoli');
+  bindToggle('t4', 'diwali-theme');
+  bindToggle('t5', 'show-diwali-banner');
+  bindToggle('t6', 'show-diya-frames');
+
+  var cpCollapse = document.getElementById('cpCollapse');
+  var cpBody = document.getElementById('cpBody');
+  cpCollapse.addEventListener('click', function(){
+    var collapsed = cpBody.classList.toggle('collapsed');
+    cpCollapse.textContent = collapsed ? '+' : '–';
+  });
+
+  /* ---------------------------------------------------------------
+     OVERLAY 2 — Rangoli corner motif (built with simple primitive
+     shapes placed on a circle, not hand-authored path data)
+     --------------------------------------------------------------- */
+  function buildRangoli(svg, cx, cy, scale){
+    cx = cx || 20; cy = cy || 20; scale = scale || 1;
+    var ns = 'http://www.w3.org/2000/svg';
+    var colors = ['var(--diwali-gold)', 'var(--diwali-maroon)', 'var(--diwali-orange)'];
+
+    [58, 40, 22].forEach(function(r, ringIdx){
+      var circle = document.createElementNS(ns, 'circle');
+      circle.setAttribute('cx', cx); circle.setAttribute('cy', cy); circle.setAttribute('r', r * scale);
+      circle.setAttribute('fill', 'none');
+      circle.setAttribute('stroke', colors[ringIdx % colors.length]);
+      circle.setAttribute('stroke-width', ringIdx === 1 ? 1.4 : 0.8);
+      circle.setAttribute('stroke-dasharray', ringIdx === 1 ? '3 4' : 'none');
+      circle.setAttribute('opacity', 0.55 - ringIdx * 0.08);
+      svg.appendChild(circle);
+    });
+
+    var petalCount = 12;
+    for (var i = 0; i < petalCount; i++){
+      var angle = (i / petalCount) * Math.PI * 2;
+      var px = cx + Math.cos(angle) * 40 * scale;
+      var py = cy + Math.sin(angle) * 40 * scale;
+      var petal = document.createElementNS(ns, 'ellipse');
+      petal.setAttribute('cx', px); petal.setAttribute('cy', py);
+      petal.setAttribute('rx', 9 * scale); petal.setAttribute('ry', 4.5 * scale);
+      petal.setAttribute('fill', colors[i % colors.length]);
+      petal.setAttribute('opacity', 0.5);
+      petal.setAttribute('transform', 'rotate(' + (angle * 180 / Math.PI) + ' ' + px + ' ' + py + ')');
+      svg.appendChild(petal);
+    }
+    var innerPetals = 8;
+    for (var j = 0; j < innerPetals; j++){
+      var a2 = (j / innerPetals) * Math.PI * 2 + Math.PI / innerPetals;
+      var qx = cx + Math.cos(a2) * 20 * scale;
+      var qy = cy + Math.sin(a2) * 20 * scale;
+      var p2 = document.createElementNS(ns, 'ellipse');
+      p2.setAttribute('cx', qx); p2.setAttribute('cy', qy);
+      p2.setAttribute('rx', 5 * scale); p2.setAttribute('ry', 2.6 * scale);
+      p2.setAttribute('fill', colors[(j + 1) % colors.length]);
+      p2.setAttribute('opacity', 0.65);
+      p2.setAttribute('transform', 'rotate(' + (a2 * 180 / Math.PI) + ' ' + qx + ' ' + qy + ')');
+      svg.appendChild(p2);
+    }
+    var center = document.createElementNS(ns, 'circle');
+    center.setAttribute('cx', cx); center.setAttribute('cy', cy); center.setAttribute('r', 5 * scale);
+    center.setAttribute('fill', colors[2]);
+    center.setAttribute('opacity', 0.7);
+    svg.appendChild(center);
+  }
+  buildRangoli(document.getElementById('rangoliLeft'), 20, 20, 1);
+  buildRangoli(document.getElementById('rangoliRight'), 20, 20, 1);
+  buildRangoli(document.getElementById('rangoliMiniLeft'), 22, 22, 0.36);
+  buildRangoli(document.getElementById('rangoliMiniRight'), 22, 22, 0.36);
+
+  /* ---------------------------------------------------------------
+     OVERLAY 9 — Diwali sky banner: string lights, floating lanterns,
+     periodic firework bursts (carpet + figures are pure CSS/SVG above)
+     --------------------------------------------------------------- */
+  var DIYA_ICON_MARKUP =
+    '<path d="M3 15c1.5 2.4 5 3.7 9 3.7s7.5-1.3 9-3.7"/>' +
+    '<path d="M3 15c0-1 .8-1.5 2-1.2 1.7.4 4 .9 7 .9s5.3-.5 7-.9c1.2-.3 2 .2 2 1.2"/>' +
+    '<path class="flame" d="M12 10.2c-1.3-1.3-1.3-3 0-4.4 1.3 1.4 1.3 3.1 0 4.4z"/>';
+
+  function initSkyStrip(){
+    // string lights, spaced along a gentle catenary sag
+    var lightsWrap = document.getElementById('stringLights');
+    if (lightsWrap.childElementCount === 0){
+      var bulbColors = ['#E4B24A', '#FFB238', '#FBEFD8', '#7C1F2E'];
+      var bulbCount = 18;
+      for (var i = 0; i < bulbCount; i++){
+        var t = i / (bulbCount - 1);
+        var sag = 10 * 4 * t * (1 - t);
+        var bulb = document.createElement('span');
+        bulb.className = 'bulb';
+        bulb.style.left = (t * 100) + '%';
+        bulb.style.top = (8 + sag) + 'px';
+        bulb.style.background = bulbColors[i % bulbColors.length];
+        bulb.style.color = bulbColors[i % bulbColors.length];
+        bulb.style.animationDelay = (-(i * 0.37)) + 's';
+        lightsWrap.appendChild(bulb);
+      }
+    }
+    // floating diya lanterns
+    var lanternLayer = document.getElementById('lanternLayer');
+    if (lanternLayer.childElementCount === 0){
+      var durations = [19, 24, 21, 27];
+      var delays = [0, -8, -15, -4];
+      durations.forEach(function(dur, i){
+        var lantern = document.createElement('div');
+        lantern.className = 'lantern';
+        lantern.style.animationDuration = dur + 's';
+        lantern.style.animationDelay = delays[i] + 's';
+        lantern.innerHTML = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">' + DIYA_ICON_MARKUP + '</svg>';
+        lanternLayer.appendChild(lantern);
+      });
+    }
+  }
+
+  var skyCanvas = document.getElementById('skyFireworksCanvas');
+  var skyCtx = skyCanvas.getContext('2d');
+  var skyFireworkTimer = null;
+
+  function sizeSkyCanvas(){
+    var strip = document.getElementById('diwaliSkyStrip');
+    skyCanvas.width = strip.clientWidth || 1200;
+    skyCanvas.height = strip.clientHeight || 132;
+  }
+
+  function skyBurst(x, y){
+    var count = reduceMotion ? 10 : 26;
+    var parts = [];
+    var colors = ['#E4B24A', '#FFD37D', '#FFB238', '#FBEFD8'];
+    for (var i = 0; i < count; i++){
+      var angle = Math.random() * Math.PI * 2;
+      var speed = 1 + Math.random() * 2.6;
+      parts.push({
+        x: x, y: y, vx: Math.cos(angle) * speed, vy: Math.sin(angle) * speed,
+        color: colors[Math.floor(Math.random() * colors.length)]
+      });
+    }
+    var start = performance.now();
+    var duration = 750;
+    function frame(now){
+      var t = Math.min((now - start) / duration, 1);
+      skyCtx.clearRect(0, 0, skyCanvas.width, skyCanvas.height);
+      parts.forEach(function(p){
+        p.vy += 0.045;
+        p.x += p.vx; p.y += p.vy;
+        skyCtx.save();
+        skyCtx.globalAlpha = 1 - t;
+        skyCtx.fillStyle = p.color;
+        skyCtx.shadowColor = p.color;
+        skyCtx.shadowBlur = 6;
+        skyCtx.beginPath();
+        skyCtx.arc(p.x, p.y, 1.8, 0, Math.PI * 2);
+        skyCtx.fill();
+        skyCtx.restore();
+      });
+      if (t < 1) requestAnimationFrame(frame);
+      else skyCtx.clearRect(0, 0, skyCanvas.width, skyCanvas.height);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  function startSkyFireworks(){
+    sizeSkyCanvas();
+    if (reduceMotion){
+      skyBurst(skyCanvas.width * 0.25, skyCanvas.height * 0.3);
+      return;
+    }
+    function schedule(){
+      skyFireworkTimer = setTimeout(function(){
+        skyBurst(20 + Math.random() * (skyCanvas.width - 40), 12 + Math.random() * (skyCanvas.height * 0.4));
+        schedule();
+      }, 1800 + Math.random() * 1600);
+    }
+    schedule();
+  }
+  function stopSkyFireworks(){
+    if (skyFireworkTimer) clearTimeout(skyFireworkTimer);
+    skyFireworkTimer = null;
+    skyCtx.clearRect(0, 0, skyCanvas.width, skyCanvas.height);
+  }
+
+  document.getElementById('t9').addEventListener('change', function(e){
+    body.classList.toggle('show-sky-strip', e.target.checked);
+    if (e.target.checked){
+      initSkyStrip();
+      startSkyFireworks();
+    } else {
+      stopSkyFireworks();
+    }
+  });
+  window.addEventListener('resize', function(){
+    if (document.getElementById('t9').checked) sizeSkyCanvas();
+  });
+
+  /* ---------------------------------------------------------------
+     OVERLAY 5 — Countdown to a hardcoded demo Diwali date
+     --------------------------------------------------------------- */
+  var DIWALI_TARGET = new Date('2026-11-08T00:00:00'); // placeholder date for the demo
+  function pad(n){ return String(n).padStart(2, '0'); }
+  function tickCountdown(){
+    var diff = DIWALI_TARGET - new Date();
+    if (diff < 0) diff = 0;
+    var days = Math.floor(diff / 86400000);
+    var hours = Math.floor((diff % 86400000) / 3600000);
+    var mins = Math.floor((diff % 3600000) / 60000);
+    var secs = Math.floor((diff % 60000) / 1000);
+    document.getElementById('cdDays').textContent = pad(days);
+    document.getElementById('cdHours').textContent = pad(hours);
+    document.getElementById('cdMins').textContent = pad(mins);
+    document.getElementById('cdSecs').textContent = pad(secs);
+  }
+  tickCountdown();
+  setInterval(tickCountdown, 1000);
+
+  /* ---------------------------------------------------------------
+     OVERLAY 1 — Falling diya / sparkle particle canvas
+     --------------------------------------------------------------- */
+  var pCanvas = document.getElementById('particleCanvas');
+  var pCtx = pCanvas.getContext('2d');
+  var particles = [];
+  var pRunning = false;
+  var pFrame = null;
+
+  function resizeCanvas(canvas){
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+
+  function makeParticle(){
+    var isDiya = Math.random() < 0.3;
+    return {
+      x: Math.random() * pCanvas.width,
+      y: Math.random() * -pCanvas.height,
+      size: isDiya ? (10 + Math.random() * 6) : (2.5 + Math.random() * 2.5),
+      speed: 0.4 + Math.random() * 0.7,
+      drift: Math.random() * 0.6 - 0.3,
+      sway: Math.random() * Math.PI * 2,
+      isDiya: isDiya,
+      twinkle: Math.random() * Math.PI * 2
+    };
+  }
+
+  function initParticles(){
+    particles = [];
+    var count = 42;
+    for (var i = 0; i < count; i++){ particles.push(makeParticle()); }
+  }
+
+  function drawDiya(x, y, size){
+    pCtx.save();
+    pCtx.translate(x, y);
+    pCtx.shadowColor = 'rgba(255,178,56,0.9)';
+    pCtx.shadowBlur = size * 1.4;
+    // bowl
+    pCtx.beginPath();
+    pCtx.ellipse(0, size * 0.35, size * 0.55, size * 0.22, 0, 0, Math.PI * 2);
+    pCtx.fillStyle = 'rgba(124,45,25,0.85)';
+    pCtx.fill();
+    // flame
+    pCtx.beginPath();
+    pCtx.moveTo(0, -size * 0.35);
+    pCtx.quadraticCurveTo(size * 0.28, 0, 0, size * 0.22);
+    pCtx.quadraticCurveTo(-size * 0.28, 0, 0, -size * 0.35);
+    var grad = pCtx.createLinearGradient(0, -size * 0.35, 0, size * 0.2);
+    grad.addColorStop(0, '#FFE9A8');
+    grad.addColorStop(1, '#E8650B');
+    pCtx.fillStyle = grad;
+    pCtx.fill();
+    pCtx.restore();
+  }
+
+  function drawSparkle(x, y, size, twinkle){
+    var alpha = 0.4 + Math.abs(Math.sin(twinkle)) * 0.6;
+    pCtx.save();
+    pCtx.translate(x, y);
+    pCtx.globalAlpha = alpha;
+    pCtx.shadowColor = 'rgba(255,211,125,0.95)';
+    pCtx.shadowBlur = size * 3;
+    pCtx.fillStyle = '#FFD37D';
+    pCtx.beginPath();
+    pCtx.moveTo(0, -size); pCtx.lineTo(size * 0.3, -size * 0.3);
+    pCtx.lineTo(size, 0); pCtx.lineTo(size * 0.3, size * 0.3);
+    pCtx.lineTo(0, size); pCtx.lineTo(-size * 0.3, size * 0.3);
+    pCtx.lineTo(-size, 0); pCtx.lineTo(-size * 0.3, -size * 0.3);
+    pCtx.closePath();
+    pCtx.fill();
+    pCtx.restore();
+  }
+
+  function stepParticles(){
+    pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+    particles.forEach(function(p){
+      p.y += p.speed;
+      p.sway += 0.01;
+      p.x += p.drift + Math.sin(p.sway) * 0.3;
+      p.twinkle += 0.04;
+      if (p.y > pCanvas.height + 20){
+        p.y = -20;
+        p.x = Math.random() * pCanvas.width;
+      }
+      if (p.isDiya) drawDiya(p.x, p.y, p.size);
+      else drawSparkle(p.x, p.y, p.size, p.twinkle);
+    });
+    if (pRunning) pFrame = requestAnimationFrame(stepParticles);
+  }
+
+  function startParticles(){
+    resizeCanvas(pCanvas);
+    initParticles();
+    pRunning = true;
+    if (reduceMotion){
+      // draw a single static frame instead of a continuous loop
+      particles.forEach(function(p){ if (p.isDiya) drawDiya(p.x, p.y, p.size); else drawSparkle(p.x, p.y, p.size, p.twinkle); });
+    } else {
+      stepParticles();
+    }
+  }
+  function stopParticles(){
+    pRunning = false;
+    if (pFrame) cancelAnimationFrame(pFrame);
+    pCtx.clearRect(0, 0, pCanvas.width, pCanvas.height);
+  }
+  document.getElementById('t1').addEventListener('change', function(e){
+    if (e.target.checked) startParticles(); else stopParticles();
+  });
+  window.addEventListener('resize', function(){
+    if (pRunning) resizeCanvas(pCanvas);
+  });
+
+})();
+</script>
