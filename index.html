@@ -324,7 +324,7 @@
     display:flex;justify-content:space-between;align-items:flex-end;pointer-events:none;
   }
   .diya-sit{
-    width:22px;height:22px;color:#F3D9A8;
+    width:22px;height:22px;color:#7A4423;
     animation:diyaSitFlicker 2.3s ease-in-out infinite;
   }
   .diya-sit svg{width:100%;height:100%}
@@ -378,24 +378,6 @@
   .sky-sparkles{position:absolute;inset:0;pointer-events:none}
   .sky-sparkle{position:absolute;border-radius:50%;animation:skySparkleTwinkle ease-in-out infinite}
   @keyframes skySparkleTwinkle{0%,100%{opacity:.15;transform:scale(.6)}50%{opacity:1;transform:scale(1.2)}}
-
-  /* a glowing white paper lantern drifting across the sky */
-  .float-lantern{position:absolute;top:12%;width:28px;height:40px;pointer-events:none;animation:lanternFloat 20s linear infinite}
-  .float-lantern svg{width:100%;height:100%;filter:drop-shadow(0 0 8px rgba(255,247,230,.85))}
-  @keyframes lanternFloat{
-    0%{left:-8%;transform:translateY(0)}
-    25%{transform:translateY(-6px)}
-    50%{transform:translateY(3px)}
-    75%{transform:translateY(-4px)}
-    100%{left:106%;transform:translateY(0)}
-  }
-
-  /* a colorful spinning chakri (pinwheel firework) drifting across */
-  .chakri-drift{position:absolute;top:44%;width:32px;height:32px;pointer-events:none;animation:chakriDrift 17s linear infinite;animation-delay:-6s}
-  .chakri-drift svg{width:100%;height:100%;filter:drop-shadow(0 0 6px rgba(255,255,255,.55))}
-  .chakri-wheel{transform-box:fill-box;transform-origin:center;animation:chakriSpin .5s linear infinite}
-  @keyframes chakriSpin{to{transform:rotate(360deg)}}
-  @keyframes chakriDrift{0%{left:-8%}100%{left:106%}}
 
   #skyFireworksCanvas{position:absolute;inset:0;pointer-events:none}
 
@@ -579,38 +561,6 @@
   <div class="sky-sparkles" id="skySparkles"></div>
 
   <div class="diya-row" id="diyaRow"></div>
-
-  <!-- glowing white paper lantern drifting across the sunset -->
-  <div class="float-lantern">
-    <svg viewBox="0 0 30 42">
-      <line x1="15" y1="0" x2="15" y2="6" stroke="#C9A227" stroke-width="1"/>
-      <rect x="4" y="6" width="22" height="26" rx="8" fill="#FFF7E6" stroke="var(--diwali-gold)" stroke-width="1.4"/>
-      <rect x="4" y="14" width="22" height="4" fill="var(--diwali-orange)" opacity=".22"/>
-      <circle cx="15" cy="19" r="7" fill="#FFF3D6" opacity=".85"/>
-      <path d="M15 34c-2 3-2 5 0 7 2-2 2-4 0-7z" fill="var(--diwali-flame)"/>
-    </svg>
-  </div>
-
-  <!-- colorful spinning chakri (pinwheel firework) drifting across -->
-  <div class="chakri-drift">
-    <svg viewBox="0 0 40 40">
-      <g class="chakri-wheel">
-        <line x1="20" y1="20" x2="20" y2="4" stroke="#FF6B8B" stroke-width="2" stroke-linecap="round"/>
-        <line x1="20" y1="20" x2="34" y2="12" stroke="#5AC8FA" stroke-width="2" stroke-linecap="round"/>
-        <line x1="20" y1="20" x2="34" y2="28" stroke="#9B5DE5" stroke-width="2" stroke-linecap="round"/>
-        <line x1="20" y1="20" x2="20" y2="36" stroke="#FFB238" stroke-width="2" stroke-linecap="round"/>
-        <line x1="20" y1="20" x2="6" y2="28" stroke="#4ADE80" stroke-width="2" stroke-linecap="round"/>
-        <line x1="20" y1="20" x2="6" y2="12" stroke="#FF6B8B" stroke-width="2" stroke-linecap="round"/>
-        <circle cx="20" cy="4" r="1.6" fill="#FF6B8B"/>
-        <circle cx="34" cy="12" r="1.6" fill="#5AC8FA"/>
-        <circle cx="34" cy="28" r="1.6" fill="#9B5DE5"/>
-        <circle cx="20" cy="36" r="1.6" fill="#FFB238"/>
-        <circle cx="6" cy="28" r="1.6" fill="#4ADE80"/>
-        <circle cx="6" cy="12" r="1.6" fill="#FF6B8B"/>
-        <circle cx="20" cy="20" r="3" fill="#FFE08A"/>
-      </g>
-    </svg>
-  </div>
 
   <!-- diya-lighters: people walking along the ground, reaching an
        arm out with a lit taper as if lighting the diyas as they go -->
